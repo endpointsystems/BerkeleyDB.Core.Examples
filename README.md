@@ -1,0 +1,3 @@
+# BerkeleyDb.Core Getting Started Projects
+
+The purpose of these projects is to replicate the demo apps built in the Oracle Berkeley DB documentation using the Berkeley .NET Core libraries using C#. These samples, while not a one-for-one replication of the original documentation, demonstrate the different functionality available in the Berkeley DB libraries when it comes to embedded database storage.
