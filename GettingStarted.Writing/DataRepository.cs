@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using BerkeleyDB.Core;
 
-namespace GettingStarted
+namespace GettingStarted.Writing
 {
   public abstract class Repository: IDisposable
   {
@@ -25,6 +25,8 @@ namespace GettingStarted
         ErrorPrefix = databaseName,Duplicates = DuplicatesPolicy.SORTED,        
       };
       db = BTreeDatabase.Open(Path.Combine(dataPath,databaseName +".db"),cfg);
+      var cursor = db.Cursor();
+      cursor.Close();
     }
 
     ~Repository()
@@ -34,7 +36,6 @@ namespace GettingStarted
 
     protected void AddToDb(string keyval, byte[] dataval)
     {
-      //Console.WriteLine($"{DateTime.Now}\tkeyval: {keyval} data: {Encoding.Default.GetString(dataval)}");
       var key = new DatabaseEntry(Encoding.UTF8.GetBytes(keyval));
       var data = new DatabaseEntry(dataval);
       db.Put(key, data);

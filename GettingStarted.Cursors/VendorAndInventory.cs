@@ -4,7 +4,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using CsvHelper.Configuration;
 
-namespace GettingStarted.Writing
+namespace GettingStarted.Cursors
 {
     [Serializable]
     public class Vendor

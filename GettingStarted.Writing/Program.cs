@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Diagnostics;
 using CsvHelper;
-namespace GettingStarted
+
+namespace GettingStarted.Writing
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
           List<long> commitTimes = new List<long>();
 
+          
           //this value was set in the project settings. We'll read CSVs and write DB files there.
           var dataPath = Environment.GetEnvironmentVariable("DATA_DIR");
-          if (string.IsNullOrEmpty(dataPath))
-            dataPath = @"C:\Repos\BerkeleyDb.Core.Examples\BerkeleyDb.Core.Examples\data";
           var vendorRepo = new VendorRepository(dataPath);
           var invRepo = new InventoryRepository(dataPath);
       
@@ -39,10 +39,9 @@ namespace GettingStarted
             int y = z + 5;
             vendor = vr.GetRecord<Vendor>();
             vendorRepo.AddVendor(vendor);
-            //int x = z + 1;
+
             for (int x = z; x < y; x++)
             {
-              //Console.WriteLine($"x: {x}, y: {y}, z: {z}");
               if (ir.Read())
               {
                 inv = new Inventory(vendor.VendorName)
