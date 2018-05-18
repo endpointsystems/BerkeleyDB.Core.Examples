@@ -12,12 +12,12 @@
 
   <ItemGroup Condition="'$(Platform)' == 'x86'">
     <Reference Include="BerkeleyDB.Core">
-      <HintPath>..\lib\x86\BerkeleyDB.Core.dll</HintPath>
+      <HintPath>..\lib\x86\Release\BerkeleyDB.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Platform)' == 'x64'">
     <Reference Include="BerkeleyDB.Core">
-      <HintPath>..\lib\x64\BerkeleyDB.Core.dll</HintPath>
+      <HintPath>..\lib\x64\Release\BerkeleyDB.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
 

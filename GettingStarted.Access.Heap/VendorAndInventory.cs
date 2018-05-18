@@ -4,7 +4,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using CsvHelper.Configuration;
 
-namespace GettingStarted.Writing
+namespace GettingStarted.Access.Heap
 {
     [Serializable]
     public class Vendor
@@ -37,9 +37,8 @@ namespace GettingStarted.Writing
     [Serializable]
     public class Inventory
     {
-        public Inventory(int vendor)
+        public Inventory()
         {
-            Vendor = vendor;
         }
 
         public double Price;

@@ -26,17 +26,18 @@ namespace GettingStarted.SecondaryDatabases
         CacheSize = new CacheInfo(1, 0, 1),
         ErrorFeedback = (prefix, message) =>
         {
-          var fg = ForegroundColor;
-          ForegroundColor = ConsoleColor.Red;
-          WriteLine($"{prefix}: {message}");
-          ForegroundColor = fg;
+          WriteLine($"{DateTime.Now} [primary] {prefix}: {message}");
         },        
         ErrorPrefix = databaseName        
       };
       db = BTreeDatabase.Open(Path.Combine(dataPath,databaseName +".db"),cfg);
       
       //set up secondary database
-      var scfg = new SecondaryBTreeDatabaseConfig(db, GenerateIndex){Creation = CreatePolicy.IF_NEEDED,Duplicates = DuplicatesPolicy.SORTED}; 
+      var scfg = new SecondaryBTreeDatabaseConfig(db, GenerateIndex){Creation = CreatePolicy.IF_NEEDED,Duplicates = DuplicatesPolicy.SORTED,
+        ErrorFeedback = (prefix, message) =>
+        {
+          WriteLine($"{DateTime.Now} [secondary] {prefix}: {message}");
+        }}; 
       
       indexDb = SecondaryBTreeDatabase.Open(Path.Combine(dataPath,databaseName +"-index.db"),scfg);
       
@@ -194,7 +195,7 @@ namespace GettingStarted.SecondaryDatabases
   public class VendorRepository: Repository
   {
     public VendorRepository(string dataPath) : base(dataPath, "vendor"){}
-    public void AddVendor(Vendor v){AddToCursor(v.VendorName,v.ToByteArray());}
+    public void AddVendor(Vendor v){AddToDb(v.VendorName,v.ToByteArray());}
     public void UpdateVendor(Vendor v){ModifyRecordUsingCursor(v.VendorName,v.ToByteArray());}
 
     protected override DatabaseEntry GenerateIndex(DatabaseEntry key, DatabaseEntry value)

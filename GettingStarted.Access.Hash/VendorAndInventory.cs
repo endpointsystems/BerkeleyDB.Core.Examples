@@ -4,7 +4,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using CsvHelper.Configuration;
 
-namespace GettingStarted.Writing
+namespace GettingStarted.Access.Hash
 {
     [Serializable]
     public class Vendor
@@ -37,7 +37,7 @@ namespace GettingStarted.Writing
     [Serializable]
     public class Inventory
     {
-        public Inventory(int vendor)
+        public Inventory(string vendor)
         {
             Vendor = vendor;
         }
@@ -48,7 +48,7 @@ namespace GettingStarted.Writing
         //this will also be our key, so we won't store it here
         //public string Sku;
         public string Category;
-        public int Vendor;
+        public string Vendor;
     }
 
     public static class Extensions

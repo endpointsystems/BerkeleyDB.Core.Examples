@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using BerkeleyDB.Core;
@@ -22,14 +23,19 @@ namespace GettingStarted.Writing
           Console.WriteLine($"{prefix}: {message}");
           Console.ForegroundColor = fg;
         },
-        ErrorPrefix = databaseName,Duplicates = DuplicatesPolicy.SORTED,        
+        ErrorPrefix = databaseName,
+          Duplicates = DuplicatesPolicy.SORTED,          
+          
       };
+        
       db = BTreeDatabase.Open(Path.Combine(dataPath,databaseName +".db"),cfg);
-      var cursor = db.Cursor();
-      cursor.Close();
+
+        //var cursor = db.Cursor();
+        //cursor.Close();
     }
 
-    ~Repository()
+
+      ~Repository()
     {
       Dispose(false);
     }
@@ -65,9 +71,25 @@ namespace GettingStarted.Writing
   /// </summary>
   public class VendorRepository: Repository
   {
-    public VendorRepository(string dataPath) : base(dataPath, "vendor"){}
+      private List<DatabaseEntry> keyList;
+      private List<DatabaseEntry> valueList;
 
-    public void AddVendor(Vendor v){AddToDb(v.VendorName,v.ToByteArray());}
+      public VendorRepository(string dataPath) : base(dataPath, "vendor")
+      {
+          keyList = new List<DatabaseEntry>();
+          valueList = new List<DatabaseEntry>();
+      }
+
+      public void AddVendor(int id, Vendor v)
+      {
+          keyList.Add(new DatabaseEntry(BitConverter.GetBytes(id)));
+          valueList.Add(new DatabaseEntry(v.ToByteArray()));
+      }
+
+      public void Save()
+      {
+          db.Put(new MultipleDatabaseEntry(keyList,false),new MultipleDatabaseEntry(valueList,false));
+      }
   }
 
   /// <summary>

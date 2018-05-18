@@ -1,1 +1,1 @@
-del /Y *.db
+del *.db

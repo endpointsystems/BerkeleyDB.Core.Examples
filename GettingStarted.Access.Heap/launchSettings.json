@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "GettingStarted.Access.Hash": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DATA_DIR": "C:\\Repos\\BerkeleyDb.Core.Examples\\data",
+        "PATH": "%PATH%;C:\\Repos\\BerkeleyDb.Core.Examples\\lib\\x64\\Debug"
+      }
+    }
+  }
+}

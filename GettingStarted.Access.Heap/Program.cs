@@ -5,11 +5,11 @@ using System.IO;
 using System.Linq;
 using CsvHelper;
 
-namespace GettingStarted.Writing
+namespace GettingStarted.Access.Heap
 {
     class Program
     {
-        static void Main()
+        static void Main(string[] args)
         {
             List<long> commitTimes = new List<long>();
 
@@ -28,9 +28,8 @@ namespace GettingStarted.Writing
             var ir = new CsvReader(File.OpenText(Path.Combine(dataPath, "inv-master.csv")));
             ir.Configuration.HasHeaderRecord = false;
             ir.Configuration.DetectColumnCountChanges = true;
-            
-            int id = 1;
 
+            int id = 1;
             int z = 0;
             var writeTimer = new Stopwatch();
             Vendor vendor;
@@ -40,19 +39,19 @@ namespace GettingStarted.Writing
                 writeTimer.Start();
                 int y = z + 5;
                 vendor = vr.GetRecord<Vendor>();
-                vendorRepo.AddVendor(id,vendor);
+                vendorRepo.AddVendor(vendor);
 
                 for (int x = z; x < y; x++)
                 {
                     if (ir.Read())
                     {
-                        inv = new Inventory(id)
+                        inv = new Inventory()
                         {
-                            Vendor = id,
                             Category = ir.GetField(2),
                             Name = ir.GetField(3),
                             Price = ir.GetField<double>(0),
-                            Quantity = ir.GetField<int>(1)
+                            Quantity = ir.GetField<int>(1),
+                            Vendor = id
                         };
                         invRepo.AddInventory(ir.GetField(5), inv);
                     }
@@ -65,9 +64,9 @@ namespace GettingStarted.Writing
                 writeTimer.Stop();
                 commitTimes.Add(writeTimer.ElapsedTicks);
                 writeTimer.Reset();
+                id++;
             }
 
-            vendorRepo.Save();
             readTimer.Stop();
             Console.WriteLine("-----------------------------");
             Console.WriteLine();
