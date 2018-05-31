@@ -2,7 +2,7 @@
 using GettingStarted.DataWriting;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace GettingStarted.Access.Hash
+namespace GettingStarted.Access.Recno
 {
     class Program
     {
@@ -12,8 +12,8 @@ namespace GettingStarted.Access.Hash
                 .AddLogging();
 
           
-          //this value was set in the project settings. the value's pulled in the parent repository constructor.
-          //var dataPath = Environment.GetEnvironmentVariable("DATA_DIR");
+            //this value was set in the project settings. the value's pulled in the parent repository constructor.
+            //var dataPath = Environment.GetEnvironmentVariable("DATA_DIR");
 
             services.AddSingleton<IVendorRepository, VendorRepository>();
             services.AddSingleton<IInventoryRepository, InventoryRepository>();
@@ -21,7 +21,7 @@ namespace GettingStarted.Access.Hash
             var app = new Application(services);
             app.Run();
 
-          Console.ReadLine();
+            Console.ReadLine();
         }
     }
 }

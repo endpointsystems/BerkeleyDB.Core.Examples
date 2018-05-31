@@ -4,11 +4,12 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using CsvHelper.Configuration;
 
-namespace GettingStarted.Access.Heap
+namespace GettingStarted.DataWriting
 {
     [Serializable]
     public class Vendor
     {
+        public int VendorId;
         public string VendorName;
         public string Street;
         public string City;
@@ -17,6 +18,15 @@ namespace GettingStarted.Access.Heap
         public string PhoneNumber;
         public string SalesRep;
         public string SalesRepPhone;
+
+        public static Vendor Deserialize(byte[] bytes)
+        {
+            using (var ms = new MemoryStream(bytes))
+            {
+                var serializer = new BinaryFormatter();
+                return serializer.Deserialize(ms) as Vendor;
+            }
+        }
     }
 
     public class VendorMap : ClassMap<Vendor>
@@ -37,8 +47,9 @@ namespace GettingStarted.Access.Heap
     [Serializable]
     public class Inventory
     {
-        public Inventory()
+        public Inventory(string vendor)
         {
+            Vendor = vendor;
         }
 
         public double Price;
@@ -47,7 +58,17 @@ namespace GettingStarted.Access.Heap
         //this will also be our key, so we won't store it here
         //public string Sku;
         public string Category;
-        public int Vendor;
+        public string Vendor;
+
+        public static Inventory Deserialize(byte[] bytes)
+        {
+            using (var ms = new MemoryStream(bytes))
+            {
+                var serializer = new BinaryFormatter();
+                return serializer.Deserialize(ms) as Inventory;
+            }
+        }
+
     }
 
     public static class Extensions

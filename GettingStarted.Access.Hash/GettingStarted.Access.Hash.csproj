@@ -8,6 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="7.1.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GettingStarted.DataWriting\GettingStarted.DataWriting.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="BerkeleyDB.Core">

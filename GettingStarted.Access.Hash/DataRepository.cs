@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using BerkeleyDB.Core;
+using GettingStarted.DataWriting;
+using Microsoft.Extensions.Logging;
 
 namespace GettingStarted.Access.Hash
 {
@@ -10,27 +11,25 @@ namespace GettingStarted.Access.Hash
     {
         protected string path;
         protected HashDatabase db;
-        protected DatabaseEnvironment env;
-        protected Repository(string dataPath, string databaseName, uint tableSize)
+        protected ILogger logger;
+        protected Repository(string databaseName, uint tableSize, ILoggerFactory loggerService)
         {
-            path = dataPath;
+            logger = loggerService.CreateLogger(databaseName);
+            path = Environment.GetEnvironmentVariable("DATA_DIR");
             var cfg = new HashDatabaseConfig
             {
                 Creation = CreatePolicy.IF_NEEDED,
                 CacheSize = new CacheInfo(1, 0, 1),
                 ErrorFeedback = (prefix, message) =>
                 {
-                    var fg = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"{prefix}: {message}");
-                    Console.ForegroundColor = fg;
+                    logger.LogCritical($"{prefix}: {message}");
                 },
                 ErrorPrefix = databaseName,
-                Duplicates = DuplicatesPolicy.SORTED,
+                Duplicates = DuplicatesPolicy.UNSORTED,
                 TableSize = tableSize
             };
 
-            db = HashDatabase.Open(Path.Combine(dataPath,databaseName +".db"),cfg);
+            db = HashDatabase.Open(Path.Combine(path,databaseName +".db"),cfg);
             
         }
 
@@ -49,7 +48,7 @@ namespace GettingStarted.Access.Hash
 
         public void Sync()
         {
-            Console.WriteLine("I'm syncing!");
+            logger.LogInformation("I'm syncing!");
             db.Sync();
         }
 
@@ -69,35 +68,36 @@ namespace GettingStarted.Access.Hash
     /// <summary>
     /// The data repository for our Vendor database.
     /// </summary>
-    public class VendorRepository : Repository
+    public class VendorRepository : Repository, IVendorRepository
     {
-        private List<DatabaseEntry> keyList;
-        private List<DatabaseEntry> valueList;
-
-        public VendorRepository(string dataPath) : base(dataPath, "vendor",8)
+        private int i;
+        public VendorRepository(ILoggerFactory logger) : base("vendor",8,logger)
         {
-            keyList = new List<DatabaseEntry>();
-            valueList = new List<DatabaseEntry>();
         }
 
         public void AddVendor(Vendor v)
         {
-            keyList.Add(new DatabaseEntry(v.VendorName.ToByteArray()));
-            valueList.Add(new DatabaseEntry(v.ToByteArray()));
+            i++;
+            v.VendorId = i;
+            AddToDb(i.ToString(),v.ToByteArray());
         }
 
         public void Save()
         {
-            db.Put(new MultipleDatabaseEntry(keyList, false), new MultipleDatabaseEntry(valueList, false));
+            Sync();
         }
     }
 
     /// <summary>
     /// The repository for our inventory database.
     /// </summary>
-    public class InventoryRepository : Repository
+    public class InventoryRepository : Repository, IInventoryRepository
     {
-        public InventoryRepository(string dataPath) : base(dataPath, "inventory",5) { }
+        public InventoryRepository(ILoggerFactory logger) : base("inventory",5, logger) { }
         public void AddInventory(string sku, Inventory inv) { AddToDb(sku, inv.ToByteArray()); }
+        public void Save()
+        {
+            Sync();
+        }
     }
 }

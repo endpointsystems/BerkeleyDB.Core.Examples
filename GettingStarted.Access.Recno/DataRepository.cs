@@ -1,41 +1,39 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using BerkeleyDB.Core;
 using GettingStarted.DataWriting;
 using Microsoft.Extensions.Logging;
 
-namespace GettingStarted.Access.Heap
+namespace GettingStarted.Access.Recno
 {
     public abstract class Repository : IDisposable
     {
         protected string path;
-        protected HeapDatabase db;
+        protected RecnoDatabase db;
         protected ILogger logger;
-        protected Repository(string databaseName, ILoggerFactory loggerService)
+        protected Repository(string databaseName, uint tableSize, ILoggerFactory loggerService)
         {
-            path = Environment.GetEnvironmentVariable("DATA_DIR");
             logger = loggerService.CreateLogger(databaseName);
-            var cfg = new HeapDatabaseConfig()
+            path = Environment.GetEnvironmentVariable("DATA_DIR");
+            var cfg = new RecnoDatabaseConfig
             {
-                
                 Creation = CreatePolicy.IF_NEEDED,
-                CacheSize = new CacheInfo(1, 0, 1),
+                //CacheSize = new CacheInfo(1, 0, 1),
                 ErrorFeedback = (prefix, message) =>
                 {
-                    var fg = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"{prefix}: {message}");
-                    Console.ForegroundColor = fg;
+                    logger.LogCritical($"{prefix}: {message}");
                 },
                 ErrorPrefix = databaseName,                
+                //This must be in place - and be equal to or larger than your data record size (but less than the page size which is 4k) - or you'll get errors.
+                Length =500,
+                BackingFile = Path.Combine(path,databaseName + ".txt"),                
                 
-                //Duplicates = DuplicatesPolicy.SORTED,
+                //Duplicates = DuplicatesPolicy.UNSORTED,
                 //TableSize = tableSize
             };
-
-            db = HeapDatabase.Open(Path.Combine(path,databaseName +".db"),cfg);
+            
+            db = RecnoDatabase.Open(Path.Combine(path,databaseName +".db"),cfg);
             
         }
 
@@ -49,12 +47,15 @@ namespace GettingStarted.Access.Heap
         {
             var key = new DatabaseEntry(Encoding.UTF8.GetBytes(keyval));
             var data = new DatabaseEntry(dataval);
-            db.Put(key, data);
+            //This is the data insertion method for Queue/Recno databases.
+            db.Append(data);
+            //...not this one
+            //db.Put(key, data);
         }
 
         public void Sync()
         {
-            Console.WriteLine("I'm syncing!");
+            logger.LogInformation("I'm syncing!");
             db.Sync();
         }
 
@@ -76,16 +77,16 @@ namespace GettingStarted.Access.Heap
     /// </summary>
     public class VendorRepository : Repository, IVendorRepository
     {
-
-        public VendorRepository(ILoggerFactory loggerFactory) : base("vendor",loggerFactory)
+        private int i;
+        public VendorRepository(ILoggerFactory logger) : base("vendor",8,logger)
         {
         }
 
         public void AddVendor(Vendor v)
         {
-            db.Append(new DatabaseEntry(v.ToByteArray()));
-            //keyList.Add(new DatabaseEntry(v.VendorName.ToByteArray()));
-            //valueList.Add(new DatabaseEntry(v.ToByteArray()));
+            i++;
+            v.VendorId = i;
+            AddToDb(i.ToString(),v.ToByteArray());
         }
 
         public void Save()
@@ -99,13 +100,8 @@ namespace GettingStarted.Access.Heap
     /// </summary>
     public class InventoryRepository : Repository, IInventoryRepository
     {
-        public InventoryRepository(ILoggerFactory loggerFactory) : base("inventory",loggerFactory) { }
-
-        public void AddInventory(string sku, Inventory inv)
-        {
-            db.Append(new DatabaseEntry(inv.ToByteArray()));
-        }
-
+        public InventoryRepository(ILoggerFactory logger) : base("inventory",5, logger) { }
+        public void AddInventory(string sku, Inventory inv) { AddToDb(sku, inv.ToByteArray()); }
         public void Save()
         {
             Sync();
