@@ -16,9 +16,10 @@
   <ItemGroup>
     <ProjectReference Include="..\GettingStarted.DataWriting\GettingStarted.DataWriting.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <Reference Include="BerkeleyDB.Core">
-      <HintPath>..\lib\x64\Debug\BerkeleyDB.Core.dll</HintPath>
+    <Reference Include="libdb_dotnet181">
+      <HintPath>..\lib\x64\Release\libdb_dotnet181.dll</HintPath>
     </Reference>
   </ItemGroup>
 

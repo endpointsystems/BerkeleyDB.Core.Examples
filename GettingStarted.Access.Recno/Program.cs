@@ -12,8 +12,8 @@ namespace GettingStarted.Access.Recno
                 .AddLogging();
 
           
-            //this value was set in the project settings. the value's pulled in the parent repository constructor.
-            //var dataPath = Environment.GetEnvironmentVariable("DATA_DIR");
+            if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable("DATA_DIR")))
+                throw new ApplicationException("DATA_DIR environment must be set to directory containing example CSV files.");
 
             services.AddSingleton<IVendorRepository, VendorRepository>();
             services.AddSingleton<IInventoryRepository, InventoryRepository>();

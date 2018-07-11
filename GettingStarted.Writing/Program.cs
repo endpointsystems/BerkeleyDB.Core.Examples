@@ -14,6 +14,8 @@ namespace GettingStarted.Writing
             List<long> commitTimes = new List<long>();
 
 
+            if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable("DATA_DIR")))
+                throw new ApplicationException("DATA_DIR environment must be set to directory containing example CSV files.");
             //this value was set in the project settings. We'll read CSVs and write DB files there.
             var dataPath = Environment.GetEnvironmentVariable("DATA_DIR");
             var vendorRepo = new VendorRepository(dataPath);

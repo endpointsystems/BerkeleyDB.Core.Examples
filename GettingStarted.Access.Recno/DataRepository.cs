@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using BerkeleyDB.Core;
+using BerkeleyDB;
 using GettingStarted.DataWriting;
 using Microsoft.Extensions.Logging;
 
@@ -19,21 +19,32 @@ namespace GettingStarted.Access.Recno
             var cfg = new RecnoDatabaseConfig
             {
                 Creation = CreatePolicy.IF_NEEDED,
-                //CacheSize = new CacheInfo(1, 0, 1),
+                CacheSize = new CacheInfo(1, 0, 1),
                 ErrorFeedback = (prefix, message) =>
                 {
                     logger.LogCritical($"{prefix}: {message}");
                 },
-                ErrorPrefix = databaseName,                
-                //This must be in place - and be equal to or larger than your data record size (but less than the page size which is 4k) - or you'll get errors.
-                Length =500,
+                ErrorPrefix = databaseName,                                
+                
+                // Not a required Recno setting like it is for Queue
+                //Length =500,
+                
                 BackingFile = Path.Combine(path,databaseName + ".txt"),                
                 
                 //Duplicates = DuplicatesPolicy.UNSORTED,
                 //TableSize = tableSize
             };
             
-            db = RecnoDatabase.Open(Path.Combine(path,databaseName +".db"),cfg);
+            if (!File.Exists(Path.Combine(path,databaseName + ".txt")))
+            {
+                using (var f = File.Create(Path.Combine(path, databaseName + ".txt")))
+                {
+                    f.Close();
+                }
+            }
+            
+            //null file name loads the databse in memory and uses the backing file for data
+            db = RecnoDatabase.Open(null, cfg);
             
         }
 
@@ -54,7 +65,7 @@ namespace GettingStarted.Access.Recno
         }
 
         public void Sync()
-        {
+        {            
             logger.LogInformation("I'm syncing!");
             db.Sync();
         }

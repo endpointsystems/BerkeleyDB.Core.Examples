@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using BerkeleyDB.Core;
+using BerkeleyDB;
 using GettingStarted.DataWriting;
 using Microsoft.Extensions.Logging;
 
@@ -26,8 +26,7 @@ namespace GettingStarted.Access.Queue
                 },
                 ErrorPrefix = databaseName,                
                 //This must be in place - and be equal to or larger than your data record size (but less than the page size which is 4k) - or you'll get errors.
-                Length =500,
-
+                Length =500,                
                 
                 //Duplicates = DuplicatesPolicy.UNSORTED,
                 //TableSize = tableSize

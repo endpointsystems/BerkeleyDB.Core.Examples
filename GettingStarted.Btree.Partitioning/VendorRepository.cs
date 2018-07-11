@@ -5,18 +5,25 @@ using BerkeleyDB;
 using GettingStarted.DataWriting;
 using Microsoft.Extensions.Logging;
 
-namespace GettingStarted.Access.Heap
+/*
+ * In this example, we're using two distinctly separate repository classes instead of having an abstracted base class. This allows us to
+ * fine-tune our databases and database operations for Vendor and Inventory.
+ */
+namespace GettingStarted.Btree.Partitioning
 {
-    public abstract class Repository : IDisposable
+    public class VendorRepository : IDisposable, IVendorRepository
     {
         protected string path;
-        protected HeapDatabase db;
+        protected BTreeDatabase db;
         protected ILogger logger;
-        protected Repository(string databaseName, ILoggerFactory loggerService)
+        protected int vendorId;
+        
+        public  VendorRepository(ILoggerFactory loggerService)
         {
+            var databaseName = "vendor";
             path = Environment.GetEnvironmentVariable("DATA_DIR");
             logger = loggerService.CreateLogger(databaseName);
-            var cfg = new HeapDatabaseConfig()
+            var cfg = new BTreeDatabaseConfig
             {
                 
                 Creation = CreatePolicy.IF_NEEDED,
@@ -32,14 +39,21 @@ namespace GettingStarted.Access.Heap
                 
                 //Duplicates = DuplicatesPolicy.SORTED,
                 //TableSize = tableSize
-            };
-
-            db = HeapDatabase.Open(Path.Combine(path,databaseName +".db"),cfg);
-            
+            };           
+            // we have 50k vendors, so we're going to split into two equal partitions of 25k
+            cfg.SetPartitionByKeys(new[] {new DatabaseEntry(BitConverter.GetBytes(25000))});
+            cfg.SetPartitionByCallback(3, key => { return 0; });
+            db = BTreeDatabase.Open(Path.Combine(path,databaseName +".db"),cfg);
+            BTreeDatabase.Verify("",cfg,Database.VerifyOperation.DEFAULT);
+        }
+        
+        public void PrintStats()
+        {
+            db.PrintStats(true);
+            db.PrintFastStats();
         }
 
-
-        ~Repository()
+        ~VendorRepository()
         {
             Dispose(false);
         }
@@ -51,10 +65,11 @@ namespace GettingStarted.Access.Heap
             db.Put(key, data);
         }
 
-        public void Sync()
+        protected void AddToDb(int keyval, byte[] dataval)
         {
-            Console.WriteLine("I'm syncing!");
-            db.Sync();
+            var key = new DatabaseEntry(BitConverter.GetBytes(keyval));
+            var data = new DatabaseEntry(dataval);
+            db.Put(key, data);
         }
 
         private void Dispose(bool disposing)
@@ -69,45 +84,19 @@ namespace GettingStarted.Access.Heap
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-    }
-    /// <summary>
-    /// The data repository for our Vendor database.
-    /// </summary>
-    public class VendorRepository : Repository, IVendorRepository
-    {
-
-        public VendorRepository(ILoggerFactory loggerFactory) : base("vendor",loggerFactory)
-        {
-        }
 
         public void AddVendor(Vendor v)
         {
-            db.Append(new DatabaseEntry(v.ToByteArray()));
-            //keyList.Add(new DatabaseEntry(v.VendorName.ToByteArray()));
-            //valueList.Add(new DatabaseEntry(v.ToByteArray()));
+            vendorId++;
+            v.VendorId = vendorId;
+            AddToDb(vendorId,v.ToByteArray());
         }
 
         public void Save()
         {
-            Sync();
+            logger.LogInformation("I'm syncing!");
+            db.Sync();
         }
     }
 
-    /// <summary>
-    /// The repository for our inventory database.
-    /// </summary>
-    public class InventoryRepository : Repository, IInventoryRepository
-    {
-        public InventoryRepository(ILoggerFactory loggerFactory) : base("inventory",loggerFactory) { }
-
-        public void AddInventory(string sku, Inventory inv)
-        {
-            db.Append(new DatabaseEntry(inv.ToByteArray()));
-        }
-
-        public void Save()
-        {
-            Sync();
-        }
-    }
 }

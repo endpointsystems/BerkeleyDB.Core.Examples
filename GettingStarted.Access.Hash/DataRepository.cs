@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using BerkeleyDB.Core;
+using BerkeleyDB;
 using GettingStarted.DataWriting;
 using Microsoft.Extensions.Logging;
 
@@ -27,8 +27,7 @@ namespace GettingStarted.Access.Hash
                 ErrorPrefix = databaseName,
                 Duplicates = DuplicatesPolicy.UNSORTED,
                 TableSize = tableSize
-            };
-
+            };            
             db = HashDatabase.Open(Path.Combine(path,databaseName +".db"),cfg);
             
         }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using BerkeleyDB.Core;
+using BerkeleyDB;
 
 namespace GettingStarted.Writing
 {
@@ -24,7 +24,7 @@ namespace GettingStarted.Writing
           Console.ForegroundColor = fg;
         },
         ErrorPrefix = databaseName,
-          Duplicates = DuplicatesPolicy.SORTED,          
+          Duplicates = DuplicatesPolicy.SORTED,                    
           
       };
         
